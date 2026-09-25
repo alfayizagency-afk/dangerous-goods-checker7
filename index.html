@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMDG Direct Delivery Material Checker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="max-w-4xl w-full mx-auto mb-6 text-center">
+        <div class="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200">
+            <i class="fa-solid fa-ship text-3xl text-blue-600"></i>
+            <div class="text-left">
+                <h1 class="text-xl font-extrabold text-slate-800">Dangerous Goods Verification System</h1>
+                <p class="text-xs text-slate-500 font-medium">Port Direct Delivery & Restricted Substance Compliance (Saudi Ports)</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-2xl w-full mx-auto mb-auto space-y-6">
+        
+        <!-- Checker Card -->
+        <div class="glass-card rounded-3xl p-6 md:p-8 shadow-xl">
+            <form id="checkForm" class="space-y-5" onsubmit="event.preventDefault(); verifyDangerousGood();">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Mandatory Input 1: IMDG Class -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                            IMDG Class <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="imdgClass" required placeholder="e.g. 5.1, 8, 1, 2.3" 
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-800 font-semibold uppercase">
+                            <i class="fa-solid fa-layer-group absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                        <span class="text-[11px] text-slate-400 mt-1 block">Valid Classes: 1, 2.1, 2.2, 2.3, 3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7, 8, 9</span>
+                    </div>
+
+                    <!-- Mandatory Input 2: UN Number -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                            UN Number (UN No.) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="unNo" required placeholder="e.g. 2031 or 1057" 
+                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-800 font-semibold">
+                            <i class="fa-solid fa-hashtag absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                        <span class="text-[11px] text-slate-400 mt-1 block">Enter 4-digit UN Number</span>
+                    </div>
+                </div>
+
+                <!-- Optional Input 3: Substance Name -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-bold text-slate-700">
+                            Scientific Name
+                        </label>
+                        <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">(Optional)</span>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="substanceName" placeholder="e.g. NITRIC ACID, AMMONIUM..." 
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-slate-800 font-semibold uppercase">
+                        <i class="fa-solid fa-vial absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-blue-500/30 transition duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Verify Material Status</span>
+                </button>
+            </form>
+
+            <!-- Result Box -->
+            <div id="resultContainer" class="mt-6 hidden"></div>
+        </div>
+
+        <!-- Full Directory Accordion/Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <button onclick="toggleDirectory()" class="w-full p-4 text-left font-bold text-slate-700 flex justify-between items-center bg-slate-50 hover:bg-slate-100 transition">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-book-bookmark text-blue-600"></i>
+                    Direct Delivery Restricted Materials Directory (Full List)
+                </span>
+                <i id="dirChevron" class="fa-solid fa-chevron-down text-slate-400 transition-transform"></i>
+            </button>
+            
+            <div id="directoryContent" class="hidden p-4 overflow-x-auto border-t border-slate-200">
+                <table class="w-full text-xs text-left text-slate-600">
+                    <thead class="bg-slate-100 text-slate-700 font-bold uppercase border-b">
+                        <tr>
+                            <th class="p-2">No.</th>
+                            <th class="p-2">Substance Scientific Name</th>
+                            <th class="p-2">IMDG Class</th>
+                            <th class="p-2">UN No. Range</th>
+                        </tr>
+                    </thead>
+                    <tbody id="directoryTableBody" class="divide-y divide-slate-100">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-slate-500 text-sm font-semibold">
+        <p>Created by Ahmed Omer Osman</p>
+    </footer>
+
+    <script>
+        // Official Direct Delivery Restricted Database
+        const restrictedDatabase = [
+            { id: 1, name: "EXPLOSIVES", classes: ["1"], un: ["ALL"] },
+            { id: 2, name: "RADIOACTIVE MATERIALS", classes: ["7"], un: ["ALL"] },
+            { id: 3, name: "AMMONIUM", classes: ["5.1"], un: ["1942", "2067", "2426"] },
+            { id: 4, name: "NITRIC ACID", classes: ["8"], un: ["2031"] },
+            { id: 5, name: "SULPHONIC ACID", classes: ["8"], un: ["2583", "2585", "2586"] },
+            { id: 6, name: "SULPHURIC ACID", classes: ["8"], un: ["1830", "1831", "1832"] },
+            { id: 7, name: "SODIUM HYDROXIDE", classes: ["8"], un: ["1823", "1824"] },
+            { id: 8, name: "HYDROGEN PEROXIDE", classes: ["5.1"], un: ["2014", "2015"] },
+            { id: 9, name: "GAS LIGHTER", classes: ["2.1"], un: ["1057"] },
+            { id: 10, name: "ETHYL METHYL KETONE PEROXIDE", classes: ["5.2"], un: ["1193"] },
+            { id: 11, name: "AMMONIA ANHYDROUS", classes: ["2.3", "8", "2.3/8"], un: ["1005"] },
+            { id: 12, name: "CALCIUM HYPOCHLORITE", classes: ["5.1"], un: ["2208", "3485", "3486"] },
+            { id: 13, name: "FORMIC ACID", classes: ["8"], un: ["1779", "3412"] },
+            { id: 14, name: "HYDRO CHLORIC ACID", classes: ["8"], un: ["1789"] },
+            { id: 15, name: "PHOSPHORIC ACID", classes: ["8"], un: ["1805", "3453"] },
+            { id: 16, name: "TETRA ETHYL LEAD", classes: ["6.1"], un: ["1649"] },
+            { id: 17, name: "HYDROGEN SULPHIDE", classes: ["2.3"], un: ["1053"] },
+            { id: 18, name: "ORGANIC METALLIC COMPOUNDS", classes: ["4.3", "4.2", "4.3/4.2"], un: ["3399", "3396", "3282", "1467"] }
+        ];
+
+        // Valid Approved Non-Direct Delivery / Allowed Materials List for Verification
+        const allowedDatabase = [
+            { class: "3", un: ["1202", "1203", "1223", "1263", "1993", "1866"] },
+            { class: "2.2", un: ["1002", "1013", "1066", "1072", "1977"] },
+            { class: "4.1", un: ["1325", "1350", "1944", "2000"] },
+            { class: "6.1", un: ["1593", "1888", "2810", "3287"] },
+            { class: "8", un: ["1760", "2735", "3264", "3265", "1791"] },
+            { class: "9", un: ["3077", "3082", "3480", "3481", "2211"] }
+        ];
+
+        // Valid IMDG Classes Range
+        const validClasses = ["1", "2.1", "2.2", "2.3", "3", "4.1", "4.2", "4.3", "5.1", "5.2", "6.1", "7", "8", "9", "2.3/8", "4.3/4.2"];
+
+        // Populate Table on load
+        window.onload = function() {
+            const tableBody = document.getElementById('directoryTableBody');
+            restrictedDatabase.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50";
+                row.innerHTML = `
+                    <td class="p-2 font-bold text-slate-500">${item.id}</td>
+                    <td class="p-2 font-semibold text-slate-800">${item.name}</td>
+                    <td class="p-2 font-mono text-blue-600">${item.classes.join(', ')}</td>
+                    <td class="p-2 font-mono text-slate-700">${item.un.join(', ')}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        };
+
+        function toggleDirectory() {
+            const content = document.getElementById('directoryContent');
+            const chevron = document.getElementById('dirChevron');
+            content.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function verifyDangerousGood() {
+            const imdgInput = document.getElementById('imdgClass').value.trim().toUpperCase();
+            const unInput = document.getElementById('unNo').value.trim().toUpperCase();
+            const nameInput = document.getElementById('substanceName').value.trim().toUpperCase();
+
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.classList.remove('hidden');
+
+            // Strict Validation Check 1: 4 Digits UN Number Format Check
+            const isFourDigits = /^\d{4}$/.test(unInput);
+            const isValidClass = validClasses.includes(imdgInput);
+
+            if (!isValidClass || !isFourDigits) {
+                showInvalidFormatMessage("Invalid Input Data", "Please enter a valid IMDG Class and a proper 4-digit UN Number.");
+                return;
+            }
+
+            // Check match with Restricted Direct Delivery Database
+            let directDeliveryMatch = null;
+            for (let item of restrictedDatabase) {
+                const classMatch = item.classes.includes(imdgInput) || item.classes.some(c => imdgInput.startsWith(c));
+                const unMatch = item.un.includes("ALL") || item.un.includes(unInput);
+                const nameMatch = !nameInput || item.name.includes(nameInput) || nameInput.includes(item.name);
+
+                if (classMatch && unMatch && nameMatch) {
+                    directDeliveryMatch = item;
+                    break;
+                }
+            }
+
+            // Check match with Approved / Allowed Database
+            let allowedMatch = false;
+            for (let item of allowedDatabase) {
+                if (item.class === imdgInput && item.un.includes(unInput)) {
+                    allowedMatch = true;
+                    break;
+                }
+            }
+
+            // Render Output Logic
+            if (directDeliveryMatch) {
+                // RED RESULT - RESTRICTED DIRECT DELIVERY
+                resultContainer.innerHTML = `
+                    <div class="bg-red-50 border-2 border-red-500 rounded-2xl p-5 text-red-900 shadow-md space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-red-700">RESTRICTED: DIRECT DELIVERY REQUIRED</h3>
+                                <p class="text-xs text-red-600 font-medium">This substance is restricted and cannot be stored in port yards.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/80 rounded-xl p-3 border border-red-200 text-sm space-y-1.5 font-medium">
+                            <div class="flex justify-between"><span class="text-slate-500">Official Scientific Name:</span> <span class="font-bold text-slate-800">${directDeliveryMatch.name}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500">IMDG Class:</span> <span class="font-bold text-slate-800">${directDeliveryMatch.classes.join(', ')}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500">Matched UN No.:</span> <span class="font-bold text-slate-800">${unInput}</span></div>
+                        </div>
+
+                        <div class="bg-red-100/80 border border-red-300 rounded-xl p-3 text-xs font-bold text-red-800 flex items-start gap-2">
+                            <i class="fa-solid fa-circle-exclamation mt-0.5 text-red-600"></i>
+                            <span>And can not loaded with LCL container. It must be loaded in FCL and declaration must be done before vessel arrives.</span>
+                        </div>
+                    </div>
+                `;
+            } else if (allowedMatch) {
+                // GREEN RESULT - ALLOWED
+                resultContainer.innerHTML = `
+                    <div class="bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-5 text-emerald-900 shadow-md space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-emerald-700">ALLOWED: STANDARD HANDLING</h3>
+                                <p class="text-xs text-emerald-600 font-medium">Verified material - Not listed under mandatory Direct Delivery rules.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/80 rounded-xl p-3 border border-emerald-200 text-sm space-y-1 font-medium">
+                            <div class="flex justify-between"><span class="text-slate-500">Entered Class:</span> <span class="font-bold text-slate-800">${imdgInput}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500">Entered UN No.:</span> <span class="font-bold text-slate-800">${unInput}</span></div>
+                            ${nameInput ? `<div class="flex justify-between"><span class="text-slate-500">Entered Name:</span> <span class="font-bold text-slate-800">${nameInput}</span></div>` : ''}
+                        </div>
+
+                        <div class="bg-emerald-100/80 border border-emerald-300 rounded-xl p-3 text-xs font-bold text-emerald-800 flex items-start gap-2">
+                            <i class="fa-solid fa-circle-info mt-0.5 text-emerald-600"></i>
+                            <span>Allowed loading it in console container (LCL), FCL, and regular port storage.</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // AMBER RESULT - UNRECOGNIZED / UNVERIFIED / FAKE DATA
+                showInvalidFormatMessage(
+                    "Unverified Entry / Data Not Found", 
+                    "The combination of IMDG Class (" + imdgInput + ") and UN No. (" + unInput + ") is unrecognized or incorrect. Please check your shipping documents."
+                );
+            }
+        }
+
+        function showInvalidFormatMessage(title, detail) {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.innerHTML = `
+                <div class="bg-amber-50 border-2 border-amber-500 rounded-2xl p-5 text-amber-900 shadow-md">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold text-amber-800">${title}</h3>
+                            <p class="text-xs text-amber-700 font-medium">${detail}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
